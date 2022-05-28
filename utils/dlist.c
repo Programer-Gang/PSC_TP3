@@ -9,6 +9,7 @@ Node *list_create() {
     return list_sentinel;
 }
 
+
 void list_delete(Node *list) {
     Node *next;
     for (Node *p = list->next; p != list; p = next) {
