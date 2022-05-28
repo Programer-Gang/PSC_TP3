@@ -2,6 +2,7 @@
 #define WAVE_H
 
 #include <stdlib.h>
+#include <stdint.h>
 
 typedef struct wave {
     FILE *file;
@@ -20,18 +21,28 @@ typedef struct wave {
     unsigned int sub_chunk_2_size;
 } Wave;
 
+Wave *wave_create();
+
 Wave *wave_load(const char *filename);
 
 void wave_destroy(Wave *wave);
 
+void wave_set_bits_per_sample(Wave *wave, int bits_per_sample); 
+
 int wave_get_bits_per_sample(Wave *wave);
 
+void wave_set_number_of_channels(Wave *wave, int number_of_channels);
+
 int wave_get_number_of_channels(Wave *wave);
+
+void wave_set_sample_rate(Wave *wave, int sample_rate);
 
 int wave_get_sample_rate(Wave *wave);
 
 size_t wave_get_samples(Wave *wave, size_t frame_index,
                         char *buffer, size_t frame_count);
+
+size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count);
 
 void wave_play(Wave *wave);
 
