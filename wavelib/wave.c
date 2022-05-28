@@ -26,12 +26,24 @@ Wave *wave_create()
     }
 
     wave->file = ptr;
-    wave_set_number_of_channels(wave, 1);
-	wave_set_sample_rate(wave, 44100);
-	wave_set_bits_per_sample(wave, 16);
-    
-    fwrite();
+    wave->chunk_id = "RIFF";
+    wave->format = "WAVE";
+    wave->sub_chunk_1_id = "fmt ";
+    wave->sub_chunk_1_size = 16;
+    wave->audio_format = 1;
+    wave->num_channels = 2;
+    wave->sample_rate = 44100;
+    wave->block_align = 4;
+    wave->bits_per_sample = 16;
+    wave->sub_chunk_2_id = "data";
+    wave->sub_chunk_2_size = 0;
+    wave->chunk_size = 44;
+    int x = wave->sample_rate;
+    int y = wave->bits_per_sample;
+    int z = wave->num_channels;
+    wave->byte_rate = (x * y * z) / 8;
 
+    fwrite((void *)&wave->chunk_id, 44, 1, ptr);
 }
 
 Wave *wave_load(const char *filename)
@@ -96,13 +108,15 @@ size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
 {
     const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
     const unsigned int frame_size = bytes_per_sample * wave->num_channels;
+    // Atualizar o tamanho do ficheiro no header depois da escrita
     const int result = fseek(wave->file, 0, SEEK_END);
     if (result != 0)
     {
         printf("fseek error\n");
         exit(1);
     }
-    return fwrite(buffer, frame_size, frame_count,wave->file);
+
+    return fwrite(buffer, frame_size, frame_count, wave->file);
 }
 
 size_t wave_get_samples(Wave *wave, size_t frame_index,
