@@ -26,7 +26,7 @@ int main (int argc, char *argv[]) {
 		exit(EXIT_FAILURE);
 	}
 
-	Wave *wave = wave_new();
+	Wave *wave = wave_create();
 	if (wave == NULL) {
 		fprintf(stderr, "Out of memory\n");
 		exit(EXIT_FAILURE);

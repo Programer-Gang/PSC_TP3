@@ -19,6 +19,7 @@ typedef struct wave {
     unsigned short bits_per_sample;
     unsigned char sub_chunk_2_id[4];
     unsigned int sub_chunk_2_size;
+    void *wave_data_list;
 } Wave;
 
 Wave *wave_create();
@@ -43,6 +44,8 @@ size_t wave_get_samples(Wave *wave, size_t frame_index,
                         char *buffer, size_t frame_count);
 
 size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count);
+
+int wave_store(Wave *wave, char *filename);
 
 void wave_play(Wave *wave);
 
