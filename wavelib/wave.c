@@ -5,7 +5,7 @@
 #include <stdint.h>
 #include <alsa/asoundlib.h>
 #include "wave.h"
-#include "utils/dlist.h"
+#include "../utils/dlist.h"
 
 #define DATA_OFFSET 44
 #define SOUND_DEVICE "default"
@@ -21,17 +21,16 @@ Wave *wave_create()
 
     Node *node_data_list = list_create();
 
-    wave->file = ptr;
-    wave->chunk_id = "RIFF";
-    wave->format = "WAVE";
-    wave->sub_chunk_1_id = "fmt ";
+    wave->chunk_id[0] = "RIFF";
+    wave->format[0] = "WAVE";
+    wave->sub_chunk_1_id[0] = "fmt ";
     wave->sub_chunk_1_size = 16;
     wave->audio_format = 1;
     wave->num_channels = 1;
     wave->sample_rate = 44100;
-    wave->block_align = 11025 // NumChannels * BitsPerSample/8
-                        wave->bits_per_sample = 16;
-    wave->sub_chunk_2_id = "data";
+    wave->block_align = 11025; // NumChannels * BitsPerSample/8
+    wave->bits_per_sample = 16;
+    wave->sub_chunk_2_id[0] = "data";
     wave->sub_chunk_2_size = 0;
     // Subchunk2Size == NumSamples * NumChannels * BitsPerSample/8
     wave->chunk_size = 36;
@@ -50,6 +49,7 @@ int wave_store(Wave *wave, char *filename)
         printf("Error opening file\n");
         exit(1);
     }
+    wave->file = ptr;
 
     // Escrita do Header no ficheiro
     fwrite((void *)&wave->chunk_id, 44, 1, ptr);
@@ -106,8 +106,8 @@ void wave_destroy(Wave *wave)
 {
     fclose(wave->file);
 
-    Node *p = wave->wave_data_list;
-    for (Node *p = list->previou; list->previous != list; p = p->previous)
+    Node *list = wave->wave_data_list;
+    for (Node *p = list->previous; list->previous != list; p = p->previous)
     {
         p->prev->next = p->next;
         p->next->prev = p->prev;
@@ -139,7 +139,7 @@ int wave_get_number_of_channels(Wave *wave)
 
 void wave_set_sample_rate(Wave *wave, int sample_rate)
 {
-    wave->sample_rate = sample_rate
+    wave->sample_rate = sample_rate;
 }
 
 int wave_get_sample_rate(Wave *wave)
