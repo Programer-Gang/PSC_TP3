@@ -1,7 +1,8 @@
 #ifndef DLIST_H
 #define DLIST_H
 
-typedef struct node {
+typedef struct node
+{
     struct node *next, *prev;
     void *data;
 } Node;
@@ -21,6 +22,8 @@ void list_remove(Node *node);
 void list_delete(Node *list);
 
 int list_empty(Node *list);
+
+int list_size(Node *list);
 
 void *list_data(Node *p);
 

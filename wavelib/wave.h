@@ -4,7 +4,8 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-typedef struct wave {
+typedef struct wave
+{
     FILE *file;
     unsigned char chunk_id[4];
     unsigned int chunk_size;
@@ -28,7 +29,7 @@ Wave *wave_load(const char *filename);
 
 void wave_destroy(Wave *wave);
 
-void wave_set_bits_per_sample(Wave *wave, int bits_per_sample); 
+void wave_set_bits_per_sample(Wave *wave, int bits_per_sample);
 
 int wave_get_bits_per_sample(Wave *wave);
 

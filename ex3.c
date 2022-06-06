@@ -8,18 +8,21 @@
 #include "utils/utils.h"
 #include "wavelib/wave.h"
 
-static Node *commands, *wave_files, *queue;
+static Node *commands, *wave_files, *wave_records, *queue;
 
-typedef struct command {
+typedef struct command
+{
     char letter;
     char *args;
     char *description;
     void (*action)(char *);
 } Command;
 
-Command *new_command(char letter, char *args, char *description, void (*action)(char *)) {
+Command *new_command(char letter, char *args, char *description, void (*action)(char *))
+{
     Command *cmd = malloc(sizeof *cmd);
-    if (cmd == NULL) {
+    if (cmd == NULL)
+    {
         fprintf(stderr, "Out of memory\n");
         exit(-1);
     }
@@ -30,17 +33,22 @@ Command *new_command(char letter, char *args, char *description, void (*action)(
     return cmd;
 }
 
-void sorted_insert_if_matches(const char *it, void *context) {
-    if (string_match(context, it)) {
+void sorted_insert_if_matches(const char *it, void *context)
+{
+    if (string_match(context, it))
+    {
         char *text = malloc(strlen(it) + 1);
         strcpy(text, it);
-        if (wave_files->next == wave_files) {
+        if (wave_files->next == wave_files)
+        {
             // List is empty
             list_insert_front(wave_files, (void *)text);
             return;
         }
-        for (Node *p = wave_files->next; p != wave_files; p = p->next) {
-            if (strcmp(it, p->data) <= 0) {
+        for (Node *p = wave_files->next; p != wave_files; p = p->next)
+        {
+            if (strcmp(it, p->data) <= 0)
+            {
                 list_insert_front(p->prev, (void *)text);
                 return;
             }
@@ -50,9 +58,11 @@ void sorted_insert_if_matches(const char *it, void *context) {
     }
 }
 
-void free_nodes_and_data(Node *node) {
+void free_nodes_and_data(Node *node)
+{
     Node *next;
-    for (Node *p = node->next; p != node; p = next) {
+    for (Node *p = node->next; p != node; p = next)
+    {
         next = p->next;
         free(p->data);
         free(p);
@@ -60,33 +70,40 @@ void free_nodes_and_data(Node *node) {
     free(node);
 }
 
-void show_wave_files() {
+void show_wave_files()
+{
     printf("\nWave files found:\n");
     int idx = 1;
-    for (Node *p = wave_files->next; p != wave_files; p = p->next, idx++) {
+    for (Node *p = wave_files->next; p != wave_files; p = p->next, idx++)
+    {
         printf(" %d. '%s'\n", idx, (char *)p->data);
     }
     printf("\n");
 }
 
-void add_to_queue(char *wave_index) {
-    if (wave_index == NULL) {
+void add_to_queue(char *wave_index)
+{
+    if (wave_index == NULL)
+    {
         printf("\nInvalid\n\n");
         return;
     }
 
     int idx;
     sscanf(wave_index, "%d", &idx);
-    if (idx <= 0) {
+    if (idx <= 0)
+    {
         printf("\nInvalid\n\n");
         return;
     }
 
     // Find wave to add to queue
     Node *node = wave_files;
-    for (int i = 0; i < idx; i++) {
+    for (int i = 0; i < idx; i++)
+    {
         node = node->next;
-        if (node == wave_files) {
+        if (node == wave_files)
+        {
             printf("\nInvalid\n\n");
             return;
         }
@@ -94,7 +111,8 @@ void add_to_queue(char *wave_index) {
 
     // Add wave to queue
     char *file_path = malloc(strlen(node->data) + 1);
-    if (file_path == NULL) {
+    if (file_path == NULL)
+    {
         fprintf(stderr, "Out of memory\n");
         exit(-1);
     }
@@ -102,27 +120,35 @@ void add_to_queue(char *wave_index) {
     list_insert_rear(queue, file_path);
 }
 
-void clear_queue(char *unused) {
+void clear_queue(char *unused)
+{
     free_nodes_and_data(queue);
     queue = list_create();
 }
 
-void show_queue(char *unused) {
-    if (queue == queue->next) {
+void show_queue(char *unused)
+{
+    if (queue == queue->next)
+    {
         printf("\nQueue is empty\n");
-    } else {
+    }
+    else
+    {
         printf("\nQueue:\n");
         int idx = 1;
-        for (Node *p = queue->next; p != queue; p = p->next, idx++) {
+        for (Node *p = queue->next; p != queue; p = p->next, idx++)
+        {
             printf(" %d. '%s'\n", idx, (char *)p->data);
         }
     }
     printf("\n");
 }
 
-void play_queue(char *unused) {
+void play_queue(char *unused)
+{
     printf("\n");
-    for (Node *p = queue->next; p != queue; p = p->next) {
+    for (Node *p = queue->next; p != queue; p = p->next)
+    {
         const char *file_path = (char *)p->data;
         Wave *wave = wave_load(file_path);
         printf("Playing '%s'...\n", file_path);
@@ -131,12 +157,66 @@ void play_queue(char *unused) {
     }
 }
 
-void help(char *unused) {
+void start_record()
+{
+    printf("\n");
+    Wave *wave = wave_create();
+    wave_set_bits_per_sample(wave, xxxx);
+    wave_set_number_of_channels(wave, xxxx);
+    wave_set_sample_rate(wave, xxxx);
+
+    // Start Recording function
+}
+
+void stop_record()
+{
+    printf("\n");
+}
+
+void list_records()
+{
+    printf("\nWave Recordings In List:\n");
+    int idx = 1;
+    for (Node *p = wave_records->next; p != wave_records; p = p->next, idx++)
+    {
+        printf(" %d. '%s'\n", idx, (char *)p->data);
+    }
+    printf("\n");
+}
+
+int save_record(const unsigned char idx)
+{
+    Node *wave_node = wave_records;
+    int wave_records_size = list_size(wave_records);
+    for (int i = 0; i < wave_records_size; i++)
+    {
+        wave_node = wave_node->next;
+    }
+
+    // Save Wave Recording in File
+
+    char filename[100];
+    printf("> ");
+    fgets(filename, sizeof filename, stdin);
+
+    // Storing File With Name Given By User
+    int res = wave_store(wave_node, filename);
+    if (res == -1)
+    {
+        printf("ERROR: Could Not Save The Current Recording!");
+        exit(-1);
+    }
+}
+
+void help(char *unused)
+{
     printf("\nHelp:\n");
-    for (Node *p = commands->next; p != commands; p = p->next) {
+    for (Node *p = commands->next; p != commands; p = p->next)
+    {
         Command *cmd = p->data;
         printf(" %c", cmd->letter);
-        if (cmd->args != NULL) {
+        if (cmd->args != NULL)
+        {
             printf(" %s", cmd->args);
         }
         printf(" %s\n", cmd->description);
@@ -144,44 +224,60 @@ void help(char *unused) {
     printf("\n");
 }
 
-void leave_program(char *unused) {
+void leave_program(char *unused)
+{
     free_nodes_and_data(commands);
     free_nodes_and_data(wave_files);
+    free_nodes_and_data(wave_records);
     free_nodes_and_data(queue);
     exit(0);
 }
 
-void command_execute(char c, char *param) {
-    for (Node *p = commands->next; p != commands; p = p->next) {
+void command_execute(char c, char *param)
+{
+    for (Node *p = commands->next; p != commands; p = p->next)
+    {
         Command *cmd = p->data;
-        if (cmd->letter == c) {
+        if (cmd->letter == c)
+        {
             cmd->action(param);
             return;
         }
     }
 }
 
-int main(int argc, char const *argv[]) {
-    if (argc != 2) {
+int main(int argc, char const *argv[])
+{
+    if (argc != 2)
+    {
         fprintf(stderr, "usage: %s <directory>\n", argv[0]);
         return -1;
     }
 
     commands = list_create();
     wave_files = list_create();
+    wave_records = list_create();
     queue = list_create();
 
     file_tree_foreach(argv[1], &sorted_insert_if_matches, "*.wav");
     show_wave_files();
 
     Command *cmd;
-    cmd = new_command('a', "<wave_index>", "Add to queue", &add_to_queue);
+    cmd = new_command('a', "<wave_index>", "Add to Audio File To Queue to Play", &add_to_queue);
     list_insert_rear(commands, cmd);
-    cmd = new_command('q', NULL, "Show queue", &show_queue);
+    cmd = new_command('q', NULL, "Show Queue of Playable Files", &show_queue);
     list_insert_rear(commands, cmd);
-    cmd = new_command('p', NULL, "Play queue", &play_queue);
+    cmd = new_command('p', NULL, "Play Queue of Playable Files", &play_queue);
     list_insert_rear(commands, cmd);
-    cmd = new_command('c', NULL, "Clear queue", &clear_queue);
+    cmd = new_command('c', NULL, "Clear queue of Playable Files", &clear_queue);
+    list_insert_rear(commands, cmd);
+    cmd = new_command('r', NULL, "Start Recording new Wave File", &start_record);
+    list_insert_rear(commands, cmd);
+    cmd = new_command('p', NULL, "Stop the Recording of Wave File", &stop_record);
+    list_insert_rear(commands, cmd);
+    cmd = new_command('l', NULL, "Show List of Recorded Files", &list_records);
+    list_insert_rear(commands, cmd);
+    cmd = new_command('s', NULL, "Save File from Recordings List", &save_record);
     list_insert_rear(commands, cmd);
     cmd = new_command('h', NULL, "Help", &help);
     list_insert_rear(commands, cmd);
@@ -189,7 +285,8 @@ int main(int argc, char const *argv[]) {
     list_insert_rear(commands, cmd);
 
     char line[100];
-    while (1) {
+    while (1)
+    {
         printf("> ");
         fgets(line, sizeof line, stdin);
         char *command = strtok(line, " \n");
@@ -197,6 +294,5 @@ int main(int argc, char const *argv[]) {
         if (command != NULL)
             command_execute(*command, arg);
     }
-
     return 0;
 }

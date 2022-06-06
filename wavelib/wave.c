@@ -44,7 +44,7 @@ Wave *wave_create()
 int wave_store(Wave *wave, char *filename)
 {
 
-    //VERIFY IF num_channels, sample_rate and bits_per_sample are different from 0
+    // VERIFY IF num_channels, sample_rate and bits_per_sample are different from 0
     hasChanged(wave->num_channels);
     hasChanged(wave->sample_rate);
     hasChanged(wave->bits_per_sample);
@@ -60,10 +60,10 @@ int wave_store(Wave *wave, char *filename)
     const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
     wave->byte_rate = wave_get_sample_rate(wave) * bytes_per_sample;
     wave->block_align = wave_get_number_of_channels(wave) * bytes_per_sample;
-    //wave->bits_per_sample ALREADY DEFINED
+    // wave->bits_per_sample ALREADY DEFINED
     wave->sub_chunk_2_id[0] = "data";
-    //TODO how do you know sample_count?
-    wave->sub_chunk_2_size = ?sample_count? * wave->block_align;
+    // TODO how do you know sample_count?
+    wave->sub_chunk_2_size = ? sample_count ? *wave->block_align;
 
     // Escrita do Header no ficheiro
     fwrite((void *)&wave->chunk_id, DATA_OFFSET, 1, ptr);
