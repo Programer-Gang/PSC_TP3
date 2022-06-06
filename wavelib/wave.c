@@ -28,7 +28,7 @@ Wave *wave_create()
     wave->audio_format = 1;
     wave->num_channels = 1;
     wave->sample_rate = 44100;
-    wave->block_align = 11025; // NumChannels * BitsPerSample/8
+    wave->block_align = 2; // NumChannels * BitsPerSample/8
     wave->bits_per_sample = 16;
     wave->sub_chunk_2_id[0] = "data";
     wave->sub_chunk_2_size = 0;
@@ -43,18 +43,31 @@ Wave *wave_create()
 
 int wave_store(Wave *wave, char *filename)
 {
+
+    //VERIFY IF num_channels, sample_rate and bits_per_sample are different from 0
+    hasChanged(wave->num_channels);
+    hasChanged(wave->sample_rate);
+    hasChanged(wave->bits_per_sample);
+
     FILE *ptr = fopen(filename, "wb");
     if (ptr == NULL)
     {
         printf("Error opening file\n");
-        exit(1);
+        exit(-1);
     }
     wave->file = ptr;
 
-    // Escrita do Header no ficheiro
-    fwrite((void *)&wave->chunk_id, 44, 1, ptr);
-
     const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
+    wave->byte_rate = wave_get_sample_rate(wave) * bytes_per_sample;
+    wave->block_align = wave_get_number_of_channels(wave) * bytes_per_sample;
+    //wave->bits_per_sample ALREADY DEFINED
+    wave->sub_chunk_2_id[0] = "data";
+    //TODO how do you know sample_count?
+    wave->sub_chunk_2_size = ?sample_count? * wave->block_align;
+
+    // Escrita do Header no ficheiro
+    fwrite((void *)&wave->chunk_id, DATA_OFFSET, 1, ptr);
+
     const unsigned int frame_size = bytes_per_sample * wave->num_channels;
     unsigned int frame_count = 0;
 
