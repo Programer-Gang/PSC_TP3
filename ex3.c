@@ -161,9 +161,9 @@ void start_record()
 {
     printf("\n");
     Wave *wave = wave_create();
-    wave_set_bits_per_sample(wave, xxxx);
-    wave_set_number_of_channels(wave, xxxx);
-    wave_set_sample_rate(wave, xxxx);
+    wave_set_bits_per_sample(wave, 16);
+    wave_set_number_of_channels(wave, 1);
+    wave_set_sample_rate(wave, 44100);
 
     // Start Recording function
 }

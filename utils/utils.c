@@ -9,15 +9,6 @@
 #include "dlist.h"
 #include "utils.h"
 
-void hasChanged(const unsigned int check)
-{
-    if (check == 0)
-    {
-        fprintf(stderr, "Initialize the values!\n");
-        exit(-1);
-    }
-}
-
 int string_match(const char *pattern, const char *candidate)
 {
     if (*pattern == '\0')
