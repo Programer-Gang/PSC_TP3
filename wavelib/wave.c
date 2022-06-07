@@ -19,25 +19,24 @@ Wave *wave_create()
         exit(-1);
     }
 
-    Node *node_data_list = list_create();
-
     wave->chunk_id[0] = "RIFF";
+    // chunk_size = 36 + SubChunk2Size
+    wave->chunk_size = 36;
     wave->format[0] = "WAVE";
+
     wave->sub_chunk_1_id[0] = "fmt ";
     wave->sub_chunk_1_size = 16;
     wave->audio_format = 1;
-    wave->num_channels = 1;
-    wave->sample_rate = 44100;
-    wave->block_align = 2; // NumChannels * BitsPerSample/8
-    wave->bits_per_sample = 16;
+    wave_set_number_of_channels(wave, 1);
+    wave_set_sample_rate(wave, 44100);
+    wave_set_bits_per_sample(wave, 16);
+    wave->byte_rate = (wave_get_sample_rate(wave) * wave_get_bits_per_sample(wave)) * (wave_get_number_of_channels(wave) / 8);
+    wave->block_align = wave_get_number_of_channels(wave) * (wave_get_bits_per_sample(wave) / 8);
+
     wave->sub_chunk_2_id[0] = "data";
-    wave->sub_chunk_2_size = 0;
     // Subchunk2Size == NumSamples * NumChannels * BitsPerSample/8
-    wave->chunk_size = 36;
-    int x = wave->sample_rate;
-    int y = wave->bits_per_sample;
-    int z = wave->num_channels;
-    wave->byte_rate = (x * y * z) / 8;
+    wave->sub_chunk_2_size = 0;
+    Node *node_data_list = list_create();
     wave->wave_data_list = node_data_list;
 }
 
@@ -57,38 +56,31 @@ int wave_store(Wave *wave, char *filename)
     }
     wave->file = ptr;
 
-    const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
-    wave->byte_rate = wave_get_sample_rate(wave) * bytes_per_sample;
-    wave->block_align = wave_get_number_of_channels(wave) * bytes_per_sample;
-    // wave->bits_per_sample ALREADY DEFINED
-    wave->sub_chunk_2_id[0] = "data";
-    // TODO how do you know sample_count?
-    wave->sub_chunk_2_size = ? sample_count ? *wave->block_align;
-
     // Escrita do Header no ficheiro
     fwrite((void *)&wave->chunk_id, DATA_OFFSET, 1, ptr);
 
-    const unsigned int frame_size = bytes_per_sample * wave->num_channels;
+    const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
+    const unsigned int frame_size = bytes_per_sample * wave_get_number_of_channels(wave);
     unsigned int frame_count = 0;
 
     Node *list = wave->wave_data_list;
     // Escrita dos blocos de frames no ficheiro
     for (Node *p = list->next; p != list; p = p->next)
     {
-        int result = fwrite(p->data, frame_size, 1, ptr);
+        int result = fwrite(((*DataBuffer)p->data)->heap_data, (((*DataBuffer)p->data)->data_frame_count) * frame_size, 1, ptr);
         if (result != 0)
         {
-            frame_count += result;
+            frame_count += (((*DataBuffer)p->data)->data_frame_count);
         }
         else
         {
             printf("Frames Written before error %d\n", frame_count);
-            printf("Error writing on file\n", filename);
-            exit(1);
+            printf("Error writing on file %s\n", filename);
+            exit(-1);
         }
     }
 
-    // Atualizar o tamanho do ficheiro no header depois da escrita
+    // TODO Atualizar o tamanho do ficheiro no header depois da escrita
 
     return frame_count;
 }
@@ -124,6 +116,7 @@ void wave_destroy(Wave *wave)
     {
         p->prev->next = p->next;
         p->next->prev = p->prev;
+        // TODO free(((*DataBuffer)p->data)->heap_data)
         free(p->data);
         free(p);
     }
@@ -163,22 +156,35 @@ int wave_get_sample_rate(Wave *wave)
 size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
 {
     const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
-    const unsigned int frame_size = bytes_per_sample * wave->num_channels;
+    const unsigned int frame_size = bytes_per_sample * wave_get_number_of_channels(wave);
 
     Node *list = wave->wave_data_list;
-    unsigned int i = 0;
-    for (unsigned int frame_offset = 0; i < frame_count; i++, frame_offset += frame_size)
+    DataBuffer *data_buffer = malloc(sizeof DataBuffer);
+
+    if (NULL == data_buffer)
     {
-        uint8_t *data = malloc(frame_size);
-        if (NULL == data)
-        {
-            fprintf(stderr, "Out of memory\n");
-            exit(-1);
-        }
-        memcpy(data, buffer[frame_offset], frame_size);
-        list_insert_rear(list, data);
+        fprintf(stderr, "Out of memory\n");
+        exit(-1);
     }
-    return i;
+    unsigned int bytes_size = frame_size * frame_count;
+
+    unsigned char *data = malloc(bytes_size);
+    if (NULL == data)
+    {
+        fprintf(stderr, "Out of memory\n");
+        exit(-1);
+    }
+    data_buffer->heap_data = data;
+    unsigned int bytes_written = memcpy(data, buffer, bytes_size);
+    if (bytes_written != bytes_size)
+    {
+        printf("Failure Copying Data from Buffer into Heap\n");
+        exit(-1);
+    }
+    data_buffer->data_frame_count = frame_count;
+    list_insert_rear(list, data_buffer);
+
+    return bytes_written / frame_size;
 }
 
 size_t wave_get_samples(Wave *wave, size_t frame_index,
