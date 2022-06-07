@@ -23,6 +23,12 @@ typedef struct wave
     void *wave_data_list;
 } Wave;
 
+typedef struct databuffer
+{
+    unsigned int data_frame_count;
+    void *heap_data;
+} DataBuffer;
+
 Wave *wave_create();
 
 Wave *wave_load(const char *filename);
