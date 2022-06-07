@@ -157,6 +157,7 @@ size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
 {
     const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
     const unsigned int frame_size = bytes_per_sample * wave_get_number_of_channels(wave);
+    const unsigned int bytes_size = frame_size * frame_count;
 
     Node *list = wave->wave_data_list;
     DataBuffer *data_buffer = malloc(sizeof DataBuffer);
@@ -166,7 +167,6 @@ size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
         fprintf(stderr, "Out of memory\n");
         exit(-1);
     }
-    unsigned int bytes_size = frame_size * frame_count;
 
     unsigned char *data = malloc(bytes_size);
     if (NULL == data)
