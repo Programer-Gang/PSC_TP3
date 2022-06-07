@@ -4,8 +4,8 @@
 #include <unistd.h>
 #include <stdint.h>
 #include <alsa/asoundlib.h>
-#include "wave.h"
 #include "../utils/dlist.h"
+#include "wave.h"
 
 #define DATA_OFFSET 44
 #define SOUND_DEVICE "default"

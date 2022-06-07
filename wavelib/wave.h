@@ -1,8 +1,13 @@
 #ifndef WAVE_H
 #define WAVE_H
 
+#include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
+#include <unistd.h>
 #include <stdint.h>
+#include <alsa/asoundlib.h>
+#include "../utils/dlist.h"
 
 typedef struct wave
 {
