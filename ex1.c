@@ -6,7 +6,7 @@
 #include "utils/utils.h"
 #include "wavelib/wave.h"
 
-static const snd_pcm_sframes_t period_size = 64;
+static const snd_pcm_sfames_t period_size = 64;
 
 static void print_samples(uint8_t *buffer, snd_pcm_sframes_t nframes, int channels)
 {
