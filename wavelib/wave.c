@@ -9,6 +9,7 @@
 
 #define DATA_OFFSET 44
 #define SOUND_DEVICE "default"
+extern volatile int running;
 
 Wave *wave_create()
 {
@@ -254,4 +255,8 @@ void wave_play(Wave *wave)
 
     snd_pcm_close(handle);
     snd_config_update_free_global();
+}
+
+void wave_record(Wave *wave)
+{
 }

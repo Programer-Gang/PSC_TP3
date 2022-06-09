@@ -3,12 +3,14 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-
+#include <threads.h>
 #include "utils/dlist.h"
 #include "utils/utils.h"
 #include "wavelib/wave.h"
 
 static Node *commands, *wave_files, *wave_records, *queue;
+static thrd_t thrd1;
+volatile int running = 1;
 
 typedef struct command
 {
@@ -161,15 +163,18 @@ void start_record()
 {
     printf("\n");
     Wave *wave = wave_create();
-    wave_set_bits_per_sample(wave, 16);
-    wave_set_number_of_channels(wave, 1);
-    wave_set_sample_rate(wave, 44100);
-
+    thrd_t thrd1;
+    running = 1;
     // Start Recording function
+    thrd_create(&thrd1, wave_record, wave);
 }
 
 void stop_record()
 {
+    running = 0;
+    int res = 0;
+    printf("\nSTOPPING RECORDING THREAD\n");
+    thrd_join(thrd1, res);
     printf("\n");
 }
 
@@ -226,6 +231,9 @@ void help(char *unused)
 
 void leave_program(char *unused)
 {
+    running = 0;
+    int res = 0;
+    thrd_join(thrd1, res);
     free_nodes_and_data(commands);
     free_nodes_and_data(wave_files);
     free_nodes_and_data(wave_records);
