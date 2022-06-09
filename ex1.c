@@ -2,7 +2,8 @@
 #include <stdlib.h>
 #include <alsa/asoundlib.h>
 #include <signal.h>
-
+#include "utils/dlist.h"
+#include "utils/utils.h"
 #include "wavelib/wave.h"
 
 static const snd_pcm_sframes_t period_size = 64;
