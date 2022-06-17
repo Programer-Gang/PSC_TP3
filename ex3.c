@@ -10,6 +10,7 @@
 
 static Node *commands, *wave_files, *wave_records, *queue;
 static thrd_t thrd1;
+static const snd_pcm_sframes_t period_size = 64;
 volatile int running = 1;
 
 typedef struct command

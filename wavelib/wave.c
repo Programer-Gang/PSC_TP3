@@ -256,7 +256,3 @@ void wave_play(Wave *wave)
     snd_pcm_close(handle);
     snd_config_update_free_global();
 }
-
-void wave_record(Wave *wave)
-{
-}
