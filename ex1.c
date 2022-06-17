@@ -74,7 +74,7 @@ int main(int argc, char *argv[])
 	int frame_size = snd_pcm_frames_to_bytes(handle, 1);
 	uint8_t buffer[period_size * frame_size];
 	snd_pcm_sframes_t read_frames;
-	int ten_seconds = 10 * wave_get_sample_rate(wave);
+	int ten_seconds = 2 * wave_get_sample_rate(wave);
 	for (int frame_index = 0; frame_index < ten_seconds; frame_index += read_frames)
 	{
 		read_frames = snd_pcm_readi(handle, buffer, period_size);
@@ -93,4 +93,5 @@ int main(int argc, char *argv[])
 	wave_store(wave, argv[1]);
 
 	snd_pcm_close(handle);
+	return 0;
 }
