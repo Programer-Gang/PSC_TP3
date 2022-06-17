@@ -170,12 +170,63 @@ void start_record()
     thrd_create(&thrd1, wave_record, wave);
 }
 
+Wave wave_record(Wave *wave)
+{
+    snd_pcm_t *handle;
+    int result = snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, 0);
+    if (result < 0)
+    {
+        fprintf(stderr, "cannot open audio device %s (%s)\n",
+                "default",
+                snd_strerror(result));
+        exit(EXIT_FAILURE);
+    }
+    result = snd_pcm_set_params(handle,
+                                SND_PCM_FORMAT_S16_LE,
+                                SND_PCM_ACCESS_RW_INTERLEAVED,
+                                wave_get_number_of_channels(wave),
+                                wave_get_sample_rate(wave),
+                                1,
+                                500000); /* 0.5 sec */
+    if (result < 0)
+    {
+        fprintf(stderr, "snd_pcm_set_params: %s\n",
+                snd_strerror(result));
+        exit(EXIT_FAILURE);
+    }
+    result = snd_pcm_prepare(handle);
+    if (result < 0)
+    {
+        fprintf(stderr, "cannot prepare audio interface for use (%s)\n",
+                snd_strerror(result));
+        exit(EXIT_FAILURE);
+    }
+
+    int frame_size = snd_pcm_frames_to_bytes(handle, 1);
+    uint8_t buffer[period_size * frame_size];
+    snd_pcm_sframes_t read_frames;
+    // int ten_seconds = 10 * wave_get_sample_rate(wave);
+    for (int frame_index = 0; running == 1; frame_index += read_frames)
+    {
+        read_frames = snd_pcm_readi(handle, buffer, period_size);
+        if (read_frames < 0)
+        {
+            fprintf(stderr, "read from audio interface failed (%s)\n",
+                    snd_strerror(read_frames));
+            exit(EXIT_FAILURE);
+        }
+        wave_append_samples(wave, buffer, read_frames);
+    }
+    snd_pcm_close(handle);
+}
+
 void stop_record()
 {
     running = 0;
     int res = 0;
     printf("\nSTOPPING RECORDING THREAD\n");
     thrd_join(thrd1, res);
+
     printf("\n");
 }
 
