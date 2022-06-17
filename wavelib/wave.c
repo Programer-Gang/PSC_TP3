@@ -65,7 +65,7 @@ int wave_store(Wave *wave, char *filename)
     // Escrita dos blocos de frames no ficheiro
     for (Node *p = list->next; p != list; p = p->next)
     {
-        int result = fwrite(((DataBuffer *)&p->data)->heap_data, (((DataBuffer *)&p->data)->data_frame_count) * frame_size, 1, ptr);
+        int result = fwrite(((DataBuffer *)p->data)->heap_data, (((DataBuffer *)p->data)->data_frame_count) * frame_size, 1, ptr);
         if (result != 0)
         {
             frame_count += (((DataBuffer *)&p->data)->data_frame_count);
