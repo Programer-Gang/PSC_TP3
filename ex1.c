@@ -93,4 +93,5 @@ int main(int argc, char *argv[])
 	wave_store(wave, argv[1]);
 
 	snd_pcm_close(handle);
+	return 0;
 }
