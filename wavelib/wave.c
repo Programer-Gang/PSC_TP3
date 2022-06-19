@@ -9,7 +9,7 @@
 
 #define DATA_OFFSET 44
 #define SOUND_DEVICE "default"
-extern volatile int running;
+
 
 Wave *wave_create()
 {
@@ -19,22 +19,12 @@ Wave *wave_create()
         fprintf(stderr, "Out of memory\n");
         exit(-1);
     }
-
-    wave->chunk_id[0] = "RIFF";
     // chunk_size = 36 + SubChunk2Size
     wave->chunk_size = 36;
-    wave->format[0] = "WAVE";
-
-    wave->sub_chunk_1_id[0] = "fmt ";
-    wave->sub_chunk_1_size = 16;
     wave->audio_format = 1;
     wave_set_number_of_channels(wave, 1);
     wave_set_sample_rate(wave, 44100);
     wave_set_bits_per_sample(wave, 16);
-    wave->byte_rate = (wave_get_sample_rate(wave) * wave_get_bits_per_sample(wave)) * (wave_get_number_of_channels(wave) / 8);
-    wave->block_align = wave_get_number_of_channels(wave) * (wave_get_bits_per_sample(wave) / 8);
-
-    wave->sub_chunk_2_id[0] = "data";
     // Subchunk2Size == NumSamples * NumChannels * BitsPerSample/8
     wave->sub_chunk_2_size = 0;
     Node *node_data_list = list_create();
@@ -53,6 +43,8 @@ int wave_store(Wave *wave, char *filename)
         exit(-1);
     }
     wave->file = ptr;
+    
+    // TODO  Ffalta escrever o header do ficheiro Wave como deve ser para depois escrever a datalist
 
     // Escrita do Header no ficheiro
     fwrite((void *)&wave->chunk_id, DATA_OFFSET, 1, ptr);
@@ -108,14 +100,11 @@ Wave *wave_load(const char *filename)
 
 void wave_destroy(Wave *wave)
 {
-    fclose(wave->file);
-
     Node *list = wave->wave_data_list;
     for (Node *p = list->prev; list->prev != list; p = p->prev)
     {
         p->prev->next = p->next;
         p->next->prev = p->prev;
-        // TODO free(((*DataBuffer)p->data)->heap_data)
         free(p->data);
         free(p);
     }
@@ -154,19 +143,15 @@ int wave_get_sample_rate(Wave *wave)
 
 size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
 {
-    const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
-    const unsigned int frame_size = bytes_per_sample * wave_get_number_of_channels(wave);
-    const unsigned int bytes_size = frame_size * frame_count;
+    const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave)/8;
+    const unsigned int frame_size = wave_get_bits_per_sample(wave) * wave_get_number_of_channels(wave);
 
-    Node *list = wave->wave_data_list;
     DataBuffer *data_buffer = malloc(sizeof *data_buffer);
-
     if (NULL == data_buffer)
     {
         fprintf(stderr, "Out of memory\n");
         exit(-1);
     }
-
     unsigned char *data = malloc(bytes_size);
     if (NULL == data)
     {
@@ -174,10 +159,12 @@ size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
         exit(-1);
     }
     data_buffer->heap_data = data;
-    memcpy(data, buffer, bytes_size);
+    memcpy(data, buffer, frame_size * frame_count);
 
     data_buffer->data_frame_count = frame_count;
-    list_insert_rear(list, data_buffer);
+    list_insert_rear(wave->wave_data_list, data_buffer);
+    wave->sub_chunk_2_size += frame_count * wave_get_number_of_channels(wave) * bytes_per_sample;
+    wave->chunk_size += frame_count * wave_get_number_of_channels(wave) * bytes_per_sample;
 
     return frame_count;
 }
