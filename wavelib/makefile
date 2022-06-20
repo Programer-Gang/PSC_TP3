@@ -6,10 +6,10 @@ libwave.a: wave.o wave.h
 
 # Creating a dynamic library that depends only on wave.o
 libwavelib.so: wave.o
-	gcc -fPIC wave.o -shared -o libwavelib.so -Wall
+	gcc -fPIC wave.o -shared -o libwavelib.so -g -Wall
 
 wave.o: wave.c wave.h
-	gcc -L./utils -lutils -ldlist -fPIC -c wave.c -Wall
+	gcc -L./utils -lutils -ldlist -fPIC -c wave.c -g -Wall
 
 clean:
 	rm -rf *.o *.is
