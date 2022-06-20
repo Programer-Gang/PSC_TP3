@@ -9,6 +9,13 @@
 #include <alsa/asoundlib.h>
 #include "../utils/dlist.h"
 
+#define RIFF_HEADER "RIFF"
+#define WAVE_HEADER "WAVE"
+#define FMT_HEADER "fmt "
+#define CHUNK_SIZE_PCM 16
+#define AUDIO_FORMAT_PCM 1
+#define DATA_HEADER "data"
+
 typedef struct wave
 {
     FILE *file;
@@ -30,8 +37,8 @@ typedef struct wave
 
 typedef struct databuffer
 {
-    unsigned int data_frame_count;
     void *heap_data;
+    unsigned int data_frame_count;
 } DataBuffer;
 
 Wave *wave_create();

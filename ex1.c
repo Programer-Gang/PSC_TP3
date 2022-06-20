@@ -30,7 +30,6 @@ int main(int argc, char *argv[])
 		fprintf(stderr, "usage: %s <file_samples>\n", argv[0]);
 		exit(EXIT_FAILURE);
 	}
-
 	Wave *wave = wave_create();
 	if (wave == NULL)
 	{
@@ -70,7 +69,6 @@ int main(int argc, char *argv[])
 				snd_strerror(result));
 		exit(EXIT_FAILURE);
 	}
-
 	int frame_size = snd_pcm_frames_to_bytes(handle, 1);
 	uint8_t buffer[period_size * frame_size];
 	snd_pcm_sframes_t read_frames;
@@ -84,14 +82,9 @@ int main(int argc, char *argv[])
 					snd_strerror(read_frames));
 			exit(EXIT_FAILURE);
 		}
-
 		wave_append_samples(wave, buffer, read_frames);
-
 		print_samples(buffer, read_frames, wave_get_number_of_channels(wave));
 	}
-
 	wave_store(wave, argv[1]);
-
 	snd_pcm_close(handle);
-	return 0;
 }

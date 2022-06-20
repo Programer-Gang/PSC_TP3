@@ -9,7 +9,7 @@
 
 #define DATA_OFFSET 44
 #define SOUND_DEVICE "default"
-
+#define BYTE_SIZE 8
 
 Wave *wave_create()
 {
@@ -19,35 +19,32 @@ Wave *wave_create()
         fprintf(stderr, "Out of memory\n");
         exit(-1);
     }
-    // chunk_size = 36 + SubChunk2Size
-    wave->chunk_size = 36;
-    wave->audio_format = 1;
-    wave_set_number_of_channels(wave, 1);
-    wave_set_sample_rate(wave, 44100);
-    wave_set_bits_per_sample(wave, 16);
     // Subchunk2Size == NumSamples * NumChannels * BitsPerSample/8
+    // Node *node_data_list = list_create();
+    wave->wave_data_list = list_create();
     wave->sub_chunk_2_size = 0;
-    Node *node_data_list = list_create();
-    wave->wave_data_list = node_data_list;
-
     return wave;
 }
 
 int wave_store(Wave *wave, char *filename)
 {
-
+    char buffer[STATIC_CONTENT] = {0};
     FILE *ptr = fopen(filename, "wb");
     if (ptr == NULL)
     {
         printf("Error opening file\n");
-        exit(-1);
+        return -1;
     }
-    wave->file = ptr;
-    
     // TODO  Ffalta escrever o header do ficheiro Wave como deve ser para depois escrever a datalist
 
     // Escrita do Header no ficheiro
-    fwrite((void *)&wave->chunk_id, DATA_OFFSET, 1, ptr);
+    write_wave_header_info(wave, buffer);
+    int res = fwrite(buffer, DATA_OFFSET, 1, ptr); // The fwrite() function returns the number of members successfully written
+    if (res != 1)
+    {
+        fprintf(stderr, "Couldnn't write file!\n");
+        return -1;
+    }
 
     const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
     const unsigned int frame_size = bytes_per_sample * wave_get_number_of_channels(wave);
@@ -57,7 +54,7 @@ int wave_store(Wave *wave, char *filename)
     // Escrita dos blocos de frames no ficheiro
     for (Node *p = list->next; p != list; p = p->next)
     {
-        int result = fwrite(((DataBuffer *)p->data)->heap_data, (((DataBuffer *)p->data)->data_frame_count) * frame_size, 1, ptr);
+        int result = fwrite(((DataBuffer *)p->data)->heap_data, frame_size, (((DataBuffer *)p->data)->data_frame_count), ptr);
         if (result != 0)
         {
             frame_count += (((DataBuffer *)&p->data)->data_frame_count);
@@ -66,14 +63,34 @@ int wave_store(Wave *wave, char *filename)
         {
             printf("Frames Written before error %d\n", frame_count);
             printf("Error writing on file %s\n", filename);
-            exit(-1);
+            return -1;
         }
     }
     fclose(ptr);
 
     // TODO Atualizar o tamanho do ficheiro no header depois da escrita
 
-    return frame_count;
+    return 0;
+}
+
+// writes static wave header content
+void write_wave_header_info(Wave *wave, char *buffer)
+{
+    int32_t temp = (int32_t)(wave->data_chunk_size + DATA_OFFSET - BYTE_SIZE);
+    memcpy(buffer, RIFF_HEADER, 4);               // "RIFF"
+    memcpy(buffer + 4, &temp, 4);                 // Size of the wav portion of the file, which follows the first 8 bytes. File size - 8
+    memcpy(buffer + 8, WAVE_HEADER, 4);           // "WAVE"
+    memcpy(buffer + 12, FMT_HEADER, 4);           // "fmt "
+    buffer[16] = (int32_t)CHUNK_SIZE_PCM;         // should be 16 for PCM
+    buffer[20] = (int16_t)AUDIO_FORMAT_PCM;       // Should be 1 for PCM.
+    buffer[22] = (int16_t)wave->num_channels;     // num_channels
+    memcpy(buffer + 24, &(wave->sample_rate), 4); // sample_rate
+    temp = (int32_t)(wave->sample_rate * wave->num_channels * wave->bits_per_sample / BYTE_SIZE);
+    memcpy(buffer + 28, &temp, 4);                                                  // byte_rate
+    buffer[32] = (int16_t)(wave->num_channels * wave->bits_per_sample / BYTE_SIZE); // sample alignment
+    buffer[34] = (int16_t)(wave->bits_per_sample);                                  // number of bits per sample;
+    memcpy(buffer + 36, DATA_HEADER, 4);                                            // "data"
+    memcpy(buffer + 40, &(wave->data_chunk_size), 4);                               // Number of bytes in data. Number of samples * num_channels * sample byte size
 }
 
 Wave *wave_load(const char *filename)
@@ -143,7 +160,7 @@ int wave_get_sample_rate(Wave *wave)
 
 size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
 {
-    const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave)/8;
+    const unsigned int bytes_per_sample = wave_get_bits_per_sample(wave) / 8;
     const unsigned int frame_size = wave_get_bits_per_sample(wave) * wave_get_number_of_channels(wave);
 
     DataBuffer *data_buffer = malloc(sizeof *data_buffer);
@@ -164,7 +181,6 @@ size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
     data_buffer->data_frame_count = frame_count;
     list_insert_rear(wave->wave_data_list, data_buffer);
     wave->sub_chunk_2_size += frame_count * wave_get_number_of_channels(wave) * bytes_per_sample;
-    wave->chunk_size += frame_count * wave_get_number_of_channels(wave) * bytes_per_sample;
 
     return frame_count;
 }

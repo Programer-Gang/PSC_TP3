@@ -162,15 +162,13 @@ void play_queue(char *unused)
 
 void start_record()
 {
-    printf("\n");
     Wave *wave = wave_create();
     thrd_t thrd1;
     running = 1;
-    // Start Recording function
     thrd_create(&thrd1, wave_record, wave);
 }
 
-Wave wave_record(Wave *wave)
+void wave_record(Wave *wave)
 {
     snd_pcm_t *handle;
     int result = snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, 0);
@@ -226,7 +224,6 @@ void stop_record()
     int res = 0;
     printf("\nSTOPPING RECORDING THREAD\n");
     thrd_join(thrd1, res);
-
     printf("\n");
 }
 
