@@ -28,7 +28,7 @@ Wave *wave_create()
 
 int wave_store(Wave *wave, char *filename)
 {
-    char buffer[STATIC_CONTENT] = {0};
+    char buffer[DATA_OFFSET] = {0};
     FILE *ptr = fopen(filename, "wb");
     if (ptr == NULL)
     {
@@ -76,7 +76,7 @@ int wave_store(Wave *wave, char *filename)
 // writes static wave header content
 void write_wave_header_info(Wave *wave, char *buffer)
 {
-    int32_t temp = (int32_t)(wave->data_chunk_size + DATA_OFFSET - BYTE_SIZE);
+    int32_t temp = (int32_t)(wave->sub_chunk_2_size + DATA_OFFSET - BYTE_SIZE);
     memcpy(buffer, RIFF_HEADER, 4);               // "RIFF"
     memcpy(buffer + 4, &temp, 4);                 // Size of the wav portion of the file, which follows the first 8 bytes. File size - 8
     memcpy(buffer + 8, WAVE_HEADER, 4);           // "WAVE"
@@ -90,7 +90,7 @@ void write_wave_header_info(Wave *wave, char *buffer)
     buffer[32] = (int16_t)(wave->num_channels * wave->bits_per_sample / BYTE_SIZE); // sample alignment
     buffer[34] = (int16_t)(wave->bits_per_sample);                                  // number of bits per sample;
     memcpy(buffer + 36, DATA_HEADER, 4);                                            // "data"
-    memcpy(buffer + 40, &(wave->data_chunk_size), 4);                               // Number of bytes in data. Number of samples * num_channels * sample byte size
+    memcpy(buffer + 40, &(wave->sub_chunk_2_size), 4);                               // Number of bytes in data. Number of samples * num_channels * sample byte size
 }
 
 Wave *wave_load(const char *filename)
@@ -169,7 +169,7 @@ size_t wave_append_samples(Wave *wave, uint8_t *buffer, size_t frame_count)
         fprintf(stderr, "Out of memory\n");
         exit(-1);
     }
-    unsigned char *data = malloc(bytes_size);
+    unsigned char *data = malloc(frame_size * frame_count);
     if (NULL == data)
     {
         fprintf(stderr, "Out of memory\n");
