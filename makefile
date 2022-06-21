@@ -10,7 +10,7 @@ ex2:
 	gcc ex2.c -L./utils -lutils -ldlist -L./wavelib -lwave -lasound -lpthread -o ex2 -g -Wall
 
 debugex2:
-	insight ./ex2
+	insight ./ex2 .
 
 clean:
 	rm -rf *.o *.i
