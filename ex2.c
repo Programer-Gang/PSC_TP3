@@ -3,13 +3,13 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
-#include <threads.h>
+#include <pthread.h>
 #include "utils/dlist.h"
 #include "utils/utils.h"
 #include "wavelib/wave.h"
 
 static Node *commands, *wave_files, *wave_records, *wave_records_names, *queue;
-static thrd_t thrd1;
+static pthread_t pthrd1;
 static const snd_pcm_sframes_t period_size = 64;
 volatile int running = 1;
 
@@ -217,9 +217,9 @@ Wave *wave_record(Wave *wave)
 void start_record()
 {
     Wave *wave = wave_create();
-    thrd_t thrd1;
+    pthread_t pthrd1;
     running = 1;
-    thrd_create(&thrd1, &wave_record, wave);
+    pthread_create(&pthrd1, NULL, &wave_record, wave);
 }
 
 void stop_record()
@@ -227,7 +227,7 @@ void stop_record()
     running = 0;
     Wave *result_wave;
     printf("\nSTOPPING RECORDING THREAD\n");
-    thrd_join(thrd1, result_wave);
+    pthread_join(thrd1, result_wave);
     list_insert_rear(wave_records, result_wave);
     list_insert_rear(wave_records_names, list_size(wave_records));
 }
@@ -293,7 +293,7 @@ void leave_program(char *unused)
 {
     running = 0;
     int res = 0;
-    thrd_join(thrd1, &res);
+    pthread_join(pthrd1, NULL);
     free_nodes_and_data(commands);
     free_nodes_and_data(wave_files);
     free_nodes_and_data(wave_records);
