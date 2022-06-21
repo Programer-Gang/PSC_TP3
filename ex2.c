@@ -163,6 +163,9 @@ void play_queue(char *unused)
 
 void wave_record(Wave *wave)
 {
+    wave_set_number_of_channels(wave, 1);
+	wave_set_sample_rate(wave, 44100);
+	wave_set_bits_per_sample(wave, 16);
     snd_pcm_t *handle;
     int result = snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, 0);
     if (result < 0)
