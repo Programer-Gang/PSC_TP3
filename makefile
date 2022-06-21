@@ -9,7 +9,7 @@ debugex1:
 ex2:
 	gcc ex2.c -L./utils -lutils -ldlist -L./wavelib -lwave -lasound -o ex2 -g -Wall
 
-debugex3:
+debugex2:
 	insight ./ex2
 
 clean:
