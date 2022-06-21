@@ -200,7 +200,8 @@ Wave *wave_record(Wave *wave)
     snd_pcm_sframes_t read_frames;
     int four_seconds = 4 * wave_get_sample_rate(wave);
     // running == 1
-    for (int frame_index = 0; frame_index < four_seconds; frame_index += read_frames)
+    // frame_index < four_seconds
+    for (int frame_index = 0; running == 1; frame_index += read_frames)
     {
         read_frames = snd_pcm_readi(handle, buffer, period_size);
         if (read_frames < 0)
@@ -229,9 +230,10 @@ void start_record()
 void stop_record()
 {
     running = 0;
-    Wave *result_wave;
-    printf("\nSTOPPING RECORDING THREAD\n");
-    pthread_join(&pthrd1, result_wave);
+    int res = 0;
+    printf("\n\n\nSTOPPING RECORDING THREAD\n\n\n");
+    pthread_join(&pthrd1, res);
+    printf("\n\n\nRECORDING STOPPED!\n\n\n");
     // list_insert_rear(wave_records, result_wave);
     // list_insert_rear(wave_records_names, list_size(wave_records));
 }
@@ -242,14 +244,16 @@ void list_records()
     {
         printf("\nRecords List is empty\n");
     }
-
-    printf("\nWave Recordings In List:\n");
-    int idx = 1;
-    for (Node *p = wave_records_names->next; p != wave_records_names; p = p->next, idx++)
+    else
     {
-        printf(" %d. '%s'\n", idx, (char *)p->data);
+        printf("\nWave Recordings In List:\n");
+        int idx = 1;
+        for (Node *p = wave_records_names->next; p != wave_records_names; p = p->next, idx++)
+        {
+            printf(" %d. '%s'\n", idx, (char *)p->data);
+        }
+        printf("\n");
     }
-    printf("\n");
 }
 
 int save_record(const unsigned char idx)
@@ -263,7 +267,7 @@ int save_record(const unsigned char idx)
 
     // Save Wave Recording in File
 
-    char filename[100];
+    char filename[100] = {"wave_capture.wav"};
     printf("> ");
     fgets(filename, sizeof filename, stdin);
 
@@ -301,6 +305,7 @@ void leave_program(char *unused)
     free_nodes_and_data(commands);
     free_nodes_and_data(wave_files);
     free_nodes_and_data(wave_records);
+    free_nodes_and_data(wave_records_names);
     free_nodes_and_data(queue);
     exit(0);
 }
