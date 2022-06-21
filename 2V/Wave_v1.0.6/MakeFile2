@@ -1,0 +1,25 @@
+# -*- MakeFile -*-
+
+#target: dependencies
+#	action
+
+CFLAGS = -g -Wall
+
+all: wave_capture
+
+wave_capture: wave_capture.o
+	gcc -o wave_capture wave_capture.o -L. libwave.a -l asound
+
+wave_capture.o: wave_capture.c wave.h list.h
+	gcc -c $(CFLAGS) wave_capture.c -fpic
+clean:
+	rm -f *.o wave wave_capture
+
+
+
+
+
+
+
+
+

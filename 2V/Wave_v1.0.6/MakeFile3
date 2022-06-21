@@ -1,0 +1,17 @@
+# -*- MakeFile -*-
+
+#target: dependencies
+#	action
+
+CFLAGS = -g -Wall
+
+
+all: capture_program
+
+capture_program: capture_program.o
+	gcc -o capture_program capture_program.o -L. libwave.a -l asound -lpthread
+
+capture_program.o: capture_program.c wave.h list.h
+	gcc -c $(CFLAGS) capture_program.c -fpic
+clean:
+	rm -f *.o wave capture_program

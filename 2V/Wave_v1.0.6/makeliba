@@ -1,0 +1,17 @@
+# -*- MakeFile -*-
+
+#target: dependencies
+#	action
+
+CFLAGS = -g -Wall 
+
+all: libwave.a
+
+libwave.a: wave.o list.o
+	ar cr	libwave.a wave.o list.o
+
+wave.o: wave.c list.h
+	gcc -c $(CFLAGS) wave.c
+
+list.o: list.c list.h
+	gcc -c $(CFLAGS) list.c
