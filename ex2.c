@@ -8,7 +8,7 @@
 #include "utils/utils.h"
 #include "wavelib/wave.h"
 
-static Node *commands, *wave_files, *wave_records, *queue;
+static Node *commands, *wave_files, *wave_records, *wave_records_names, *queue;
 static thrd_t thrd1;
 static const snd_pcm_sframes_t period_size = 64;
 volatile int running = 1;
@@ -160,12 +160,11 @@ void play_queue(char *unused)
     }
 }
 
-
-void wave_record(Wave *wave)
+Wave *wave_record(Wave *wave)
 {
     wave_set_number_of_channels(wave, 1);
-	wave_set_sample_rate(wave, 44100);
-	wave_set_bits_per_sample(wave, 16);
+    wave_set_sample_rate(wave, 44100);
+    wave_set_bits_per_sample(wave, 16);
     snd_pcm_t *handle;
     int result = snd_pcm_open(&handle, "default", SND_PCM_STREAM_CAPTURE, 0);
     if (result < 0)
@@ -212,6 +211,7 @@ void wave_record(Wave *wave)
         wave_append_samples(wave, buffer, read_frames);
     }
     snd_pcm_close(handle);
+    return wave;
 }
 
 void start_record()
@@ -225,17 +225,23 @@ void start_record()
 void stop_record()
 {
     running = 0;
-    int res = 0;
+    Wave *result_wave;
     printf("\nSTOPPING RECORDING THREAD\n");
-    thrd_join(thrd1, &res);
-    printf("\n");
+    thrd_join(thrd1, result_wave);
+    list_insert_rear(wave_records, result_wave);
+    list_insert_rear(wave_records_names, list_size(wave_records));
 }
 
 void list_records()
 {
+    if (wave_records_names == wave_records_names->next)
+    {
+        printf("\nRecords List is empty\n");
+    }
+
     printf("\nWave Recordings In List:\n");
     int idx = 1;
-    for (Node *p = wave_records->next; p != wave_records; p = p->next, idx++)
+    for (Node *p = wave_records_names->next; p != wave_records_names; p = p->next, idx++)
     {
         printf(" %d. '%s'\n", idx, (char *)p->data);
     }
@@ -318,6 +324,7 @@ int main(int argc, char const *argv[])
 
     commands = list_create();
     wave_files = list_create();
+    wave_records_names = list_create();
     wave_records = list_create();
     queue = list_create();
 
