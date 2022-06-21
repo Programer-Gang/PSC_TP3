@@ -7,7 +7,7 @@ debugex1:
 	insight ./ex1 -args wave_capture1.wav
 
 ex2:
-	gcc ex2.c -L./utils -lutils -ldlist -L./wavelib -lwave -lasound -o ex2 -g -Wall
+	gcc ex2.c -L./utils -lutils -ldlist -L./wavelib -lwave -lasound -lpthread -o ex2 -g -Wall
 
 debugex2:
 	insight ./ex2

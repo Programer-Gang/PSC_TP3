@@ -160,13 +160,6 @@ void play_queue(char *unused)
     }
 }
 
-void start_record()
-{
-    Wave *wave = wave_create();
-    thrd_t thrd1;
-    running = 1;
-    thrd_create(&thrd1, wave_record, wave);
-}
 
 void wave_record(Wave *wave)
 {
@@ -218,12 +211,20 @@ void wave_record(Wave *wave)
     snd_pcm_close(handle);
 }
 
+void start_record()
+{
+    Wave *wave = wave_create();
+    thrd_t thrd1;
+    running = 1;
+    thrd_create(&thrd1, &wave_record, wave);
+}
+
 void stop_record()
 {
     running = 0;
     int res = 0;
     printf("\nSTOPPING RECORDING THREAD\n");
-    thrd_join(thrd1, res);
+    thrd_join(thrd1, &res);
     printf("\n");
 }
 
@@ -254,12 +255,13 @@ int save_record(const unsigned char idx)
     fgets(filename, sizeof filename, stdin);
 
     // Storing File With Name Given By User
-    int res = wave_store(wave_node, filename);
+    int res = wave_store((Wave *)(wave_node->data), filename);
     if (res == -1)
     {
         printf("ERROR: Could Not Save The Current Recording!");
         exit(-1);
     }
+    return 0;
 }
 
 void help(char *unused)
@@ -282,7 +284,7 @@ void leave_program(char *unused)
 {
     running = 0;
     int res = 0;
-    thrd_join(thrd1, res);
+    thrd_join(thrd1, &res);
     free_nodes_and_data(commands);
     free_nodes_and_data(wave_files);
     free_nodes_and_data(wave_records);
