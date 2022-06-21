@@ -227,7 +227,7 @@ void stop_record()
     running = 0;
     Wave *result_wave;
     printf("\nSTOPPING RECORDING THREAD\n");
-    pthread_join(thrd1, result_wave);
+    pthread_join(&pthrd1, result_wave);
     list_insert_rear(wave_records, result_wave);
     list_insert_rear(wave_records_names, list_size(wave_records));
 }
@@ -293,7 +293,7 @@ void leave_program(char *unused)
 {
     running = 0;
     int res = 0;
-    pthread_join(pthrd1, NULL);
+    pthread_join(&pthrd1, NULL);
     free_nodes_and_data(commands);
     free_nodes_and_data(wave_files);
     free_nodes_and_data(wave_records);
