@@ -203,6 +203,7 @@ Wave *wave_record(Wave *wave)
     // frame_index < four_seconds
     for (int frame_index = 0; running == 1; frame_index += read_frames)
     {
+        printf(".");
         read_frames = snd_pcm_readi(handle, buffer, period_size);
         if (read_frames < 0)
         {
@@ -216,25 +217,24 @@ Wave *wave_record(Wave *wave)
     char capture_name[25] = {"wave_capture.wav"};
     list_insert_rear(wave_records, wave);
     list_insert_rear(wave_records_names, &capture_name);
-    pthread_exit(wave);
+    // pthread_exit(wave);
     return wave;
 };
 
 void start_record()
 {
     Wave *wave = wave_create();
-    pthread_t pthrd1;
     running = 1;
-    pthread_create(&pthrd1, NULL, &wave_record, wave);
+    pthread_create(&pthrd1, NULL, wave_record, wave);
 }
 
 void stop_record()
 {
     running = 0;
     int res = 0;
-    printf("\n\n\nSTOPPING RECORDING THREAD\n\n\n");
-    pthread_join(&pthrd1, res);
-    printf("\n\n\nRECORDING STOPPED!\n\n\n");
+    printf("\n\tSTOPPING RECORDING THREAD\n");
+    pthread_join(pthrd1, res);
+    printf("\n\n\tRECORDING STOPPED!\n\n");
     // list_insert_rear(wave_records, result_wave);
     // list_insert_rear(wave_records_names, list_size(wave_records));
 }
@@ -303,8 +303,7 @@ void leave_program(char *unused)
     if (running == 1)
     {
         running = 0;
-        int res = 0;
-        pthread_join(&pthrd1, NULL);
+        pthread_join(pthrd1, NULL);
     }
     free_nodes_and_data(commands);
     free_nodes_and_data(wave_files);
@@ -349,7 +348,7 @@ int main(int argc, char const *argv[])
     list_insert_rear(commands, cmd);
     cmd = new_command('q', NULL, "Show Queue of Playable Files", &show_queue);
     list_insert_rear(commands, cmd);
-    cmd = new_command('p', NULL, "Play Queue of Playable Files", &play_queue);
+    cmd = new_command('z', NULL, "Play Queue of Playable Files", &play_queue);
     list_insert_rear(commands, cmd);
     cmd = new_command('c', NULL, "Clear queue of Playable Files", &clear_queue);
     list_insert_rear(commands, cmd);
