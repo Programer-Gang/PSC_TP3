@@ -198,8 +198,9 @@ Wave *wave_record(Wave *wave)
     int frame_size = snd_pcm_frames_to_bytes(handle, 1);
     uint8_t buffer[period_size * frame_size];
     snd_pcm_sframes_t read_frames;
-    // int ten_seconds = 10 * wave_get_sample_rate(wave);
-    for (int frame_index = 0; running == 1; frame_index += read_frames)
+    int four_seconds = 4 * wave_get_sample_rate(wave);
+    // running == 1
+    for (int frame_index = 0; frame_index < four_seconds; frame_index += read_frames)
     {
         read_frames = snd_pcm_readi(handle, buffer, period_size);
         if (read_frames < 0)
@@ -211,8 +212,11 @@ Wave *wave_record(Wave *wave)
         wave_append_samples(wave, buffer, read_frames);
     }
     snd_pcm_close(handle);
+    char capture_name[25] = {"wave_capture.wav"};
+    list_insert_rear(wave_records, wave);
+    list_insert_rear(wave_records_names, &capture_name);
     return wave;
-}
+};
 
 void start_record()
 {
@@ -228,8 +232,8 @@ void stop_record()
     Wave *result_wave;
     printf("\nSTOPPING RECORDING THREAD\n");
     pthread_join(&pthrd1, result_wave);
-    list_insert_rear(wave_records, result_wave);
-    list_insert_rear(wave_records_names, list_size(wave_records));
+    // list_insert_rear(wave_records, result_wave);
+    // list_insert_rear(wave_records_names, list_size(wave_records));
 }
 
 void list_records()
