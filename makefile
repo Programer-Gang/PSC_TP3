@@ -1,4 +1,4 @@
-all: ex1 ex3
+all: ex1 ex2
 
 ex1:
 	gcc ex1.c ./utils/dlist.c -L./wavelib -lwave -lasound -o ex1 -g -Wall
@@ -6,8 +6,11 @@ ex1:
 debugex1:
 	insight ./ex1 -args wave_capture1.wav
 
-ex3:
-	gcc ex3.c -L./utils -lutils -ldlist -L./wavelib -lwave -lasound -o ex3 -g -Wall
+ex2:
+	gcc ex2.c -L./utils -lutils -ldlist -L./wavelib -lwave -lasound -o ex2 -g -Wall
+
+debugex3:
+	insight ./ex2
 
 clean:
 	rm -rf *.o *.i
