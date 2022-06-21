@@ -216,6 +216,7 @@ Wave *wave_record(Wave *wave)
     char capture_name[25] = {"wave_capture.wav"};
     list_insert_rear(wave_records, wave);
     list_insert_rear(wave_records_names, &capture_name);
+    pthread_exit(wave);
     return wave;
 };
 
@@ -299,9 +300,12 @@ void help(char *unused)
 
 void leave_program(char *unused)
 {
-    running = 0;
-    int res = 0;
-    pthread_join(&pthrd1, NULL);
+    if (running == 1)
+    {
+        running = 0;
+        int res = 0;
+        pthread_join(&pthrd1, NULL);
+    }
     free_nodes_and_data(commands);
     free_nodes_and_data(wave_files);
     free_nodes_and_data(wave_records);
